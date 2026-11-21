@@ -14,19 +14,19 @@ Développé dans le cadre du cours *Programmation Embarquée Mobile* (Dr. Atef F
 
 ## Structure du dépôt
 
-Le dépôt contient **trois branches de travail**, une par pôle :
+Le dépôt contient **trois branches**, une par environnement :
 
-| Branche | Contenu |
+| Branche | Rôle |
 |---|---|
-| `backend` | API Symfony — work des 2 développeurs backend |
-| `frontend` | Application Flutter — work du développeur frontend |
-| `devops` | Docker (compose, Dockerfiles), CI, documentation d'exploitation |
+| `development` | intégration quotidienne du travail de toute l'équipe |
+| `preprod` | recette : version candidate, tests avant mise en production |
+| `prod` | production : le code qui tourne réellement |
 
 ## Convention de branches
 
-- `main` = **stable, jamais de push direct** ; on ne merge que via pull request.
-- Chaque pôle travaille sur **sa branche** (`backend`, `frontend`, `devops`).
-- Fonctionnalités : branche `feature/tpXX-sujet` créée depuis la branche du pôle,
+- Flux : `development` → `preprod` → `prod` (chaque étape par pull request).
+- `prod` et `preprod` sont **protégées** : pas de push direct, merge uniquement via PR.
+- Fonctionnalités : branche `feature/tpXX-sujet` créée depuis `development`,
   puis PR avec revue croisée avant merge.
 
 ## Règles de commit
