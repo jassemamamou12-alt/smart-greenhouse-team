@@ -1,0 +1,43 @@
+# ---------------------------------------------------------------
+# Smart Greenhouse — environnement local de développement
+# Usage : docker compose up --build
+# API   : http://localhost:8000/api/health
+# BDD   : postgresql://app:app@localhost:5432/greenhouse
+# ---------------------------------------------------------------
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: greenhouse-api
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: "1"
+      APP_SECRET: change-me-local-dev-secret
+      PORT: "8000"
+      DATABASE_URL: postgresql://app:app@db:5432/greenhouse?serverVersion=16&charset=utf8
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: greenhouse-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: greenhouse
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d greenhouse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

@@ -1,0 +1,15 @@
+# Réduise le contexte envoyé au daemon Docker
+.git
+.github
+.gitignore
+frontend/
+docker/
+*.md
+Thumbs.db
+.idea/
+.vscode/
+
+# Jamais dans l'image (déjà géré par backend/.gitignore)
+**/vendor/
+**/var/
+**/.phpunit.cache
