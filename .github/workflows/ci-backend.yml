@@ -5,6 +5,7 @@ on:
     branches: [main, development, preprod, prod]
   push:
     branches: [main, development, preprod, prod]
+  workflow_dispatch:
 
 jobs:
   backend:
