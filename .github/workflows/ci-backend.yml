@@ -1,0 +1,66 @@
+name: CI Backend
+
+on:
+  pull_request:
+    branches: [main, development, preprod, prod]
+  push:
+    branches: [main, development, preprod, prod]
+
+jobs:
+  backend:
+    name: API Symfony
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, pdo_pgsql, ctype, iconv
+          coverage: none
+
+      - name: Valider composer.json
+        working-directory: backend
+        run: composer validate --no-check-publish
+
+      - name: Installer les dependances
+        working-directory: backend
+        run: composer install --prefer-dist --no-progress --no-interaction
+        env:
+          APP_ENV: test
+          APP_SECRET: ci-secret-tests-only
+
+      - name: Verifier le conteneur Symfony
+        working-directory: backend
+        run: php bin/console lint:container
+        env:
+          APP_ENV: test
+          APP_SECRET: ci-secret-tests-only
+
+      - name: Linter les fichiers YAML
+        working-directory: backend
+        run: php bin/console lint:yaml config
+        env:
+          APP_ENV: test
+          APP_SECRET: ci-secret-tests-only
+
+      - name: Verifier que l'API demarre (routes)
+        working-directory: backend
+        run: php bin/console debug:router
+        env:
+          APP_ENV: test
+          APP_SECRET: ci-secret-tests-only
+
+  docker:
+    name: Build Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Construire l'image (verifie le Dockerfile)
+        run: docker build -t ci-test .
