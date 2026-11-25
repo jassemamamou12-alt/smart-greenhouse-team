@@ -3,9 +3,6 @@ name: CI Frontend
 on:
   pull_request:
     branches: [main, development, preprod, prod]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/ci-frontend.yml'
   push:
     branches: [main, development, preprod, prod]
     paths:
