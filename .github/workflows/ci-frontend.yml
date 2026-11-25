@@ -1,0 +1,92 @@
+name: CI Frontend
+
+on:
+  pull_request:
+    branches: [main, development, preprod, prod]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/ci-frontend.yml'
+  push:
+    branches: [main, development, preprod, prod]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/ci-frontend.yml'
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: App Flutter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Verifier que l'app Flutter existe
+        id: check
+        run: |
+          if [ -f frontend/pubspec.yaml ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "App Flutter detectee -> lancement des tests"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Aucun pubspec.yaml dans frontend/ -> etape ignoree"
+          fi
+
+      - name: Installer Flutter
+        if: steps.check.outputs.exists == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Recuperer les dependances
+        if: steps.check.outputs.exists == 'true'
+        working-directory: frontend
+        run: flutter pub get
+
+      - name: Analyser le code (flutter analyze)
+        if: steps.check.outputs.exists == 'true'
+        working-directory: frontend
+        run: flutter analyze --no-fatal-infos
+
+      - name: Lancer les tests (flutter test)
+        if: steps.check.outputs.exists == 'true'
+        working-directory: frontend
+        run: flutter test
+
+  build-web:
+    name: Build Flutter Web
+    runs-on: ubuntu-latest
+    needs: frontend
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Verifier que l'app Flutter existe
+        id: check
+        run: |
+          if [ -f frontend/pubspec.yaml ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Installer Flutter
+        if: steps.check.outputs.exists == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Construire le web
+        if: steps.check.outputs.exists == 'true'
+        working-directory: frontend
+        run: flutter build web --release
+
+      - name: Verifier la sortie
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          test -f frontend/build/web/index.html
+          echo "Build web OK -> frontend/build/web/index.html genere"
