@@ -8,11 +8,14 @@ use Symfony\Component\Routing\Attribute\Route;
 /**
  * Endpoint de santé : sert de health check pour Render et de preuve
  * que l'API répond. À étendre par l'équipe backend.
+ *
+ * Deux alias sont exposés pour éviter toute erreur 404 selon l'outil
+ * qui appelle : /api/health (canonical) et /health (health check simple).
  */
-#[Route('/api/health')]
 class HealthController
 {
-    #[Route('', name: 'api_health', methods: ['GET'])]
+    #[Route('/api/health', name: 'api_health', methods: ['GET'])]
+    #[Route('/health', name: 'health_short', methods: ['GET'])]
     public function __invoke(): JsonResponse
     {
         return new JsonResponse([
