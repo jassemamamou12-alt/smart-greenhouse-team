@@ -23,10 +23,12 @@ final class HealthController extends AbstractController
         }
 
         return $this->json([
-            'status'   => $code === 200 ? 'ok' : 'degraded',
-            'database' => $database,
-            'time'     => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
-                            ->format('Y-m-d\TH:i:s\Z'),
+            'status'      => $code === 200 ? 'ok' : 'degraded',
+            'service'     => 'smart-greenhouse-api',
+            'environment' => $_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? 'unknown',
+            'database'    => $database,
+            'time'        => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
+                             ->format('Y-m-d\TH:i:s\Z'),
         ], $code);
     }
 }

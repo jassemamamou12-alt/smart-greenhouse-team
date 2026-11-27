@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------
+# Normalisation des fins de ligne
+# ---------------------------------------------------------------
+# Render exécute `bash scripts/build-frontend.sh` sur Linux. Si le script
+# atterrit avec des fins de ligne CRLF, bash échoue sur chaque ligne avec
+# "$'\r': command not found" et le deploy du frontend casse.
+#
+# "text eol=lf" force LF à la fois dans le dépôt ET dans le working copy,
+# quel que soit le core.autocrlf de chaque contributeur (l'équipe travaille
+# sous Windows, où autocrlf=true convertirait sinon en CRLF).
+*.sh    text eol=lf
+
+# Fichiers lus par GitHub Actions / Render : on garde LF pour éviter toute
+# surprise d'interprétation.
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# Binaire : jamais de conversion.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.db    binary

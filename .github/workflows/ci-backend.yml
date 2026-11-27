@@ -12,6 +12,32 @@ jobs:
     name: API Symfony
     runs-on: ubuntu-latest
 
+    # Base de tests : doctrine ajoute "_test" au nom de base (dbname_suffix
+    # dans config/packages/doctrine.yaml, section when@test), donc on fait
+    # tourner un vrai PostgreSQL ici et on cree la base "app_test" dans une
+    # etape dediee. Sans ce service, le test HealthControllerTest echouerait
+    # par "database: down" (503).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Commune a toutes les etapes du job : evite de repeter env: 4 fois.
+    env:
+      APP_ENV: test
+      APP_SECRET: ci-secret-tests-only
+      DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=16&charset=utf8
+
     steps:
       - name: Recuperer le code
         uses: actions/checkout@v4
@@ -30,30 +56,26 @@ jobs:
       - name: Installer les dependances
         working-directory: backend
         run: composer install --prefer-dist --no-progress --no-interaction
-        env:
-          APP_ENV: test
-          APP_SECRET: ci-secret-tests-only
 
       - name: Verifier le conteneur Symfony
         working-directory: backend
         run: php bin/console lint:container
-        env:
-          APP_ENV: test
-          APP_SECRET: ci-secret-tests-only
 
       - name: Linter les fichiers YAML
         working-directory: backend
         run: php bin/console lint:yaml config
-        env:
-          APP_ENV: test
-          APP_SECRET: ci-secret-tests-only
 
       - name: Verifier que l'API demarre (routes)
         working-directory: backend
         run: php bin/console debug:router
-        env:
-          APP_ENV: test
-          APP_SECRET: ci-secret-tests-only
+
+      - name: Creer la base de tests
+        working-directory: backend
+        run: php bin/console doctrine:database:create --if-not-exists
+
+      - name: Lancer les tests (PHPUnit)
+        working-directory: backend
+        run: php vendor/bin/phpunit
 
   docker:
     name: Build Docker
