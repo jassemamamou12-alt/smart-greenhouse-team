@@ -13,7 +13,16 @@
     <php>
         <ini name="display_errors" value="1" />
         <ini name="error_reporting" value="-1" />
+        <!-- IMPORTANT : on utilise <env> ET <server>, pas <server> seul.
+             Symfony (KernelTestCase) lit $_ENV['APP_ENV'] EN PREMIER, puis
+             $_SERVER. Avec <server> seul, $_ENV garderait la valeur du
+             conteneur Docker (APP_ENV=dev) et le Kernel demarrerait en dev :
+             le bloc when@test ne s'applique alors plus et chaque test
+             echoue par "framework.test config not set to true". -->
+        <env name="APP_ENV" value="test" force="true" />
+        <env name="KERNEL_CLASS" value="App\Kernel" force="true" />
         <server name="APP_ENV" value="test" force="true" />
+        <server name="KERNEL_CLASS" value="App\Kernel" force="true" />
         <server name="SHELL_VERBOSITY" value="-1" />
     </php>
 
