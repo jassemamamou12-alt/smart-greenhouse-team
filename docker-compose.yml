@@ -9,6 +9,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # Local : on installe les dépendances de dev, sinon config/bundles.php
+        # (MakerBundle, 'dev' => true) provoque un ClassNotFoundError en APP_ENV=dev.
+        # Render/CI gardent le défaut "--no-dev" du Dockerfile.
+        COMPOSER_INSTALL_FLAGS: ""
     container_name: greenhouse-api
     ports:
       - "8000:8000"
@@ -18,6 +23,9 @@ services:
       APP_SECRET: change-me-local-dev-secret
       PORT: "8000"
       DATABASE_URL: postgresql://app:app@db:5432/greenhouse?serverVersion=16&charset=utf8
+      # Origines autorisees a appeler l'API depuis un autre domaine.
+      # '*' = tout le monde (acceptable en local / tant que l'API est publique).
+      CORS_ALLOWED_ORIGINS: "*"
     depends_on:
       db:
         condition: service_healthy

@@ -20,10 +20,17 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# 1) Dépendances d'abord : ce layer est mis en cache tant que composer.lock ne change pas
+# Dépendances d'abord : ce layer est mis en cache tant que composer.lock ne change pas
+#
+# COMPOSER_INSTALL_FLAGS permet d'installer (ou non) les dépendances de dev
+# SANS changer l'image de production :
+#   - Render / CI  : défaut "--no-dev"  (image légère, sans maker-bundle...)
+#   - local        : docker-compose passe "" (dev), requis car config/bundles.php
+#                    charge MakerBundle quand APP_ENV=dev
+ARG COMPOSER_INSTALL_FLAGS="--no-dev"
 COPY backend/composer.json backend/composer.lock ./
 RUN composer install \
-        --no-dev \
+        ${COMPOSER_INSTALL_FLAGS} \
         --no-scripts \
         --no-autoloader \
         --prefer-dist \
